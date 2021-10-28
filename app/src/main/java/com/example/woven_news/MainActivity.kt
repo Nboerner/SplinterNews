@@ -6,6 +6,7 @@ import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -67,16 +68,21 @@ class MainActivity : AppCompatActivity() {
 
     class MainViewModel : ViewModel() {
 
+        // init function to launch the coroutines to not block main / UI thread
         fun init() {
             scope.launch {
                 getStories()
+                populateList()
             }
         }
 
+        // the scope in which the coroutines will run
         val scope = CoroutineScope(Job())
 
+        var stories = emptyList<String>()
+
         suspend fun getStories() {
-            val topStories = "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty"
+            val topStories = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
             val url : URL = URL(topStories)
             val json : InputStream
             val connection : HttpURLConnection = url.openConnection() as HttpURLConnection
@@ -86,6 +92,18 @@ class MainActivity : AppCompatActivity() {
             // TODO Deal with Timeouts?
             // receive response here
             json = connection.inputStream // ?
+            val parsedData : String = json.bufferedReader().use {it.readText()}
+            stories = parsedData.split(", ")
+            Log.d("Tag", stories[0].trim('[').trim())
+            Log.d("MainActivity","We got there")
+
+        }
+
+//        suspend fun getNewStories() {
+//            val newStories =
+//        }
+
+        suspend fun populateList() {
 
         }
     }
