@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -26,6 +27,8 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var linearLayoutManager : LinearLayoutManager
 
+    private lateinit var adapter : PanelAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -39,7 +42,8 @@ class MainActivity : AppCompatActivity() {
         // create a recyclerview to prepare to present data
         val recyclerView = findViewById<RecyclerView>(R.id.newsList)
         // attach the recyclerview to custom class PanelAdapter to manage data
-        recyclerView.adapter = PanelAdapter(this, viewModel.stories)
+        adapter = PanelAdapter(this, viewModel.stories)
+        recyclerView.adapter = adapter
         // recyclerView does not have to worry about resizing due to content
         recyclerView.setHasFixedSize(true)
         //
@@ -48,9 +52,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.storyData.observe(
             this,
             Observer { examinedData ->
-//                recyclerView.adapter.update(viewModel.stories)
-//                recyclerView.adapter?.notifyDataSetChanged()
+                adapter.update(viewModel.stories)
                 Log.d("ugh", viewModel.storyData.toString())
+                Log.d("ugh", viewModel.storyData.value.toString())
             },
         )
 
@@ -101,7 +105,9 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
+//    fun update(view : View, adapter : PanelAdapter) {
+//        adapter.update()
+//    }
 
 
 }

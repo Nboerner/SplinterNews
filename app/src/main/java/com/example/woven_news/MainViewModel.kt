@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.InputStream
@@ -13,7 +14,17 @@ import java.net.URL
 
 class MainViewModel : ViewModel() {
 
+//    private var storyIds : List<String> by mutableStateOf(ListOf())
+
     private val _data = MutableLiveData<List<String>>()
+    // create a tangible job to interact with coroutine functions if necessary
+    private val viewModelJob = Job()
+
+    // the scope in which the coroutines will run
+    val scope = CoroutineScope(viewModelJob + Dispatchers.IO)
+
+    var stories = emptyList<String>()
+
     val storyData : LiveData<List<String>>
         get() = _data
 
@@ -21,31 +32,26 @@ class MainViewModel : ViewModel() {
     fun init() {
         scope.launch {
             getStories()
+            populateList()
         }
-        populateList()
     }
-
-    // the scope in which the coroutines will run
-    val scope = CoroutineScope(Job())
-
-    var stories = emptyList<String>()
 
 //        var panels
 
-    suspend fun getStories() {
+    private suspend fun getStories() {
         val topStories = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
-        val url : URL = URL(topStories)
+        val url = URL(topStories)
         val json : InputStream
         val connection : HttpURLConnection = url.openConnection() as HttpURLConnection
 
         // make the GET request here
         connection.connect()
-        // TODO Deal with Timeouts?
         // receive response here
         json = connection.inputStream // ?
-        val parsedData : String = json.bufferedReader().use {it.readText()}
+        var parsedData : String = json.bufferedReader().use {it.readText()}
+        parsedData = parsedData.trim('[').trim()
         stories = parsedData.split(", ")
-        Log.d("Tag", stories[0].trim('[').trim())
+        Log.d("Tag", stories[0])
         Log.d("MainActivity","We got there")
         connection.disconnect()
 
@@ -54,8 +60,10 @@ class MainViewModel : ViewModel() {
 //        suspend fun getNewStories() {
 //        }
 
-    fun populateList() {
-        _data.value = stories
+    private fun populateList() {
+        Log.d("Proc", stories.toString())
+        _data.postValue(stories)
 
     }
+
 }
