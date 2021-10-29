@@ -8,7 +8,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModel
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.woven_news.adapter.PanelAdapter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -17,14 +23,45 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var linearLayoutManager : LinearLayoutManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        linearLayoutManager = LinearLayoutManager(this)
+
+
+        // initialize a viewModel class for the page
         val viewModel = MainViewModel()
-        viewModel.init()
+
+        // create a recyclerview to prepare to present data
+        val recyclerView = findViewById<RecyclerView>(R.id.newsList)
+        // attach the recyclerview to custom class PanelAdapter to manage data
+        recyclerView.adapter = PanelAdapter(this, viewModel.stories)
+        // recyclerView does not have to worry about resizing due to content
+        recyclerView.setHasFixedSize(true)
+        //
+        recyclerView.layoutManager = linearLayoutManager
+
+        viewModel.storyData.observe(
+            this,
+            Observer { examinedData ->
+//                recyclerView.adapter.update(viewModel.stories)
+//                recyclerView.adapter?.notifyDataSetChanged()
+                Log.d("ugh", viewModel.storyData.toString())
+            },
+        )
+
+
+        // ensures the device is connected to the internet prior to HTTP requests
         if (checkInternet()) Toast.makeText(this, "Connection is Clear",
             Toast.LENGTH_SHORT).show() else
                 Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
+
+        // begins HTTP requests to grab data
+        viewModel.init()
     }
 
     /*
@@ -66,45 +103,5 @@ class MainActivity : AppCompatActivity() {
 
 
 
-    class MainViewModel : ViewModel() {
 
-        // init function to launch the coroutines to not block main / UI thread
-        fun init() {
-            scope.launch {
-                getStories()
-                populateList()
-            }
-        }
-
-        // the scope in which the coroutines will run
-        val scope = CoroutineScope(Job())
-
-        var stories = emptyList<String>()
-
-        suspend fun getStories() {
-            val topStories = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
-            val url : URL = URL(topStories)
-            val json : InputStream
-            val connection : HttpURLConnection = url.openConnection() as HttpURLConnection
-
-            // make the GET request here
-            connection.connect()
-            // TODO Deal with Timeouts?
-            // receive response here
-            json = connection.inputStream // ?
-            val parsedData : String = json.bufferedReader().use {it.readText()}
-            stories = parsedData.split(", ")
-            Log.d("Tag", stories[0].trim('[').trim())
-            Log.d("MainActivity","We got there")
-
-        }
-
-//        suspend fun getNewStories() {
-//            val newStories =
-//        }
-
-        suspend fun populateList() {
-
-        }
-    }
 }
