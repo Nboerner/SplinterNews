@@ -1,5 +1,6 @@
 package com.example.woven_news.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import android.view.LayoutInflater
@@ -13,8 +14,11 @@ class PanelAdapter(private val context : Context, private var content : List<Str
     : RecyclerView.Adapter<PanelAdapter.PanelViewHolder>() {
 
     class PanelViewHolder(private val view : View) : RecyclerView.ViewHolder(view), View.OnClickListener {
-        // sets the panel text for headline to the article title
+        // identifyies the panel attributes for reassignment in binding
+        val storyNumber : TextView = view.findViewById(R.id.number)
         val storyTitle : TextView = view.findViewById(R.id.headline)
+        val ratingScore : TextView = view.findViewById(R.id.score)
+        val webURL : TextView = view.findViewById(R.id.url)
         init {
             view.setOnClickListener(this)
         }
@@ -36,9 +40,13 @@ class PanelAdapter(private val context : Context, private var content : List<Str
         return PanelViewHolder(adapterLayout)
     }
 
+    @SuppressLint("SetTextI18n") // without active context, couldn't use getString() or alt ?
     override fun onBindViewHolder(holder : PanelViewHolder, position : Int) {
         val item = content[position]
+        holder.storyNumber.text = (position + 1).toString() + "."
         holder.storyTitle.text = item
+//        holder.ratingScore.text = SCORE
+//        holder.webURL.text = URL
     }
 
     override fun getItemCount() = content.size

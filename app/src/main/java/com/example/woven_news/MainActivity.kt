@@ -7,26 +7,18 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.view.View
 import android.widget.Toast
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woven_news.adapter.PanelAdapter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
 
 class MainActivity : AppCompatActivity() {
 
+    // A basic linear layout manager used to present the articles in an ordered fashion
     private lateinit var linearLayoutManager : LinearLayoutManager
 
+    // adapter used by the RecyclerView to handle population of articles from HTTP request
     private lateinit var adapter : PanelAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +26,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
 
+        // initialize our linearLayoutManager
         linearLayoutManager = LinearLayoutManager(this)
 
 
@@ -42,18 +35,22 @@ class MainActivity : AppCompatActivity() {
 
         // create a recyclerview to prepare to present data
         val recyclerView = findViewById<RecyclerView>(R.id.newsList)
+
         // attach the recyclerview to custom class PanelAdapter to manage data
-        adapter = PanelAdapter(this, viewModel.stories)
+        adapter = PanelAdapter(this, viewModel.storyIDs)
         recyclerView.adapter = adapter
+
         // recyclerView does not have to worry about resizing due to content
         recyclerView.setHasFixedSize(true)
-        //
+
+        // connect the recyclerView with the linear layout manager
         recyclerView.layoutManager = linearLayoutManager
 
+        // waits for changes to occur in our liveData object from ViewModel to signal UI update
         viewModel.storyData.observe(
             this,
             Observer { examinedData ->
-                adapter.update(viewModel.stories)
+                adapter.update(viewModel.storyIDs)
                 Log.d("ugh", viewModel.storyData.toString())
                 Log.d("ugh", viewModel.storyData.value.toString())
             },
@@ -65,13 +62,14 @@ class MainActivity : AppCompatActivity() {
             Toast.LENGTH_SHORT).show() else
                 Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
 
-        // begins HTTP requests to grab data
+        // begins HTTP requests to grab data from ViewModel class
         viewModel.init()
     }
 
-    /*
- Checks if the device is currently connected to an active internet connection
- */
+    /**
+     * Checks if the device is currently connected to an active internet connection
+     * @return whether or not the device has an active and valid connection
+    */
     private fun checkInternet() : Boolean {
         val communicationManager : ConnectivityManager = getSystemService(
             Context.CONNECTIVITY_SERVICE
@@ -105,10 +103,5 @@ class MainActivity : AppCompatActivity() {
             return networkListener.isConnected
         }
     }
-
-//    fun update(view : View, adapter : PanelAdapter) {
-//        adapter.update()
-//    }
-
 
 }

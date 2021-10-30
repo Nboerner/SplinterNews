@@ -5,4 +5,6 @@
     <string name="rating">Rating:</string>
     <string name="score">000</string>
     <string name="URL">https://news.ycombinator.com/</string>
+    <string name="number">%1$s.</string>
+    <string name="time">0 hours ago</string>
 </resources>
