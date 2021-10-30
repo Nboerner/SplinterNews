@@ -6,3 +6,5 @@ Language: Kotlin
 Built with Gradle (version?)
 
 Primarily Tested on API 24: Android 7.0 (Nougat)
+
+Reads up to 500 stories, only adds them to view if the returned type from API is of "story" 

@@ -9,8 +9,9 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woven_news.R
+import com.example.woven_news.model.Article
 
-class PanelAdapter(private val context : Context, private var content : List<String>)
+class PanelAdapter(private val context : Context, private var content : List<Article>)
     : RecyclerView.Adapter<PanelAdapter.PanelViewHolder>() {
 
     class PanelViewHolder(private val view : View) : RecyclerView.ViewHolder(view), View.OnClickListener {
@@ -19,6 +20,7 @@ class PanelAdapter(private val context : Context, private var content : List<Str
         val storyTitle : TextView = view.findViewById(R.id.headline)
         val ratingScore : TextView = view.findViewById(R.id.score)
         val webURL : TextView = view.findViewById(R.id.url)
+        val time : TextView = view.findViewById(R.id.timestamp)
         init {
             view.setOnClickListener(this)
         }
@@ -28,7 +30,7 @@ class PanelAdapter(private val context : Context, private var content : List<Str
         }
     }
 
-    fun update(newContent : List<String>) {
+    fun update(newContent : List<Article>) {
         content = newContent
         notifyDataSetChanged()
     }
@@ -44,7 +46,10 @@ class PanelAdapter(private val context : Context, private var content : List<Str
     override fun onBindViewHolder(holder : PanelViewHolder, position : Int) {
         val item = content[position]
         holder.storyNumber.text = (position + 1).toString() + "."
-        holder.storyTitle.text = item
+        holder.storyTitle.text = item.title
+        holder.ratingScore.text = item.rating
+        holder.webURL.text = item.URL
+        holder.time.text = item.time
 //        holder.ratingScore.text = SCORE
 //        holder.webURL.text = URL
     }

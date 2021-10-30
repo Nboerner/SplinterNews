@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         // initialize our linearLayoutManager
         linearLayoutManager = LinearLayoutManager(this)
 
+        // TODO make on scroll listener for dynamic loading
 
         // initialize a viewModel class for the page
         val viewModel = MainViewModel()
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.newsList)
 
         // attach the recyclerview to custom class PanelAdapter to manage data
-        adapter = PanelAdapter(this, viewModel.storyIDs)
+        adapter = PanelAdapter(this, viewModel.stories)
         recyclerView.adapter = adapter
 
         // recyclerView does not have to worry about resizing due to content
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.storyData.observe(
             this,
             Observer { examinedData ->
-                adapter.update(viewModel.storyIDs)
+                adapter.update(viewModel.stories)
                 Log.d("ugh", viewModel.storyData.toString())
                 Log.d("ugh", viewModel.storyData.value.toString())
             },
