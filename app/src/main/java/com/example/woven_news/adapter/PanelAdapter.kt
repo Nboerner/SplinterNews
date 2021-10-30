@@ -13,7 +13,8 @@ class PanelAdapter(private val context : Context, private var content : List<Str
     : RecyclerView.Adapter<PanelAdapter.PanelViewHolder>() {
 
     class PanelViewHolder(private val view : View) : RecyclerView.ViewHolder(view), View.OnClickListener {
-        val storyTitle : TextView = view.findViewById(R.id.panel)
+        // sets the panel text for headline to the article title
+        val storyTitle : TextView = view.findViewById(R.id.headline)
         init {
             view.setOnClickListener(this)
         }
