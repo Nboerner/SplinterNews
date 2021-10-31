@@ -10,7 +10,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.io.InputStream
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
@@ -24,74 +23,98 @@ class MainViewModel : ViewModel() {
     private val viewModelJob = Job()
 
     // the scope in which the coroutines will run to make HTTP requests
-    val scope = CoroutineScope(viewModelJob + Dispatchers.IO)
+    private val scope = CoroutineScope(viewModelJob + Dispatchers.IO)
 
-    // list of ID's used to make HTTP requests to acquire article information
-    var storyIDs = mutableListOf<String>()
+    // list of ID's used to make HTTP requests to acquire recent article information
+    private var recentStoryIDs = mutableListOf<String>()
+    // list of ID's used to make HTTP requests to acquire best article information
+    private var bestStoryIDs = mutableListOf<String>()
 
-    // a list of articles to be shown on the main activity
-    var stories = mutableListOf<Article>()
+
+    // a list of the most recent articles to be shown on the main activity
+    var recentStories = mutableListOf<Article>()
+    // a list of the highest rated articles to be shown on the main activity
+    var bestStories = mutableListOf<Article>()
+
+    var activeStories : MutableList<Article> = recentStories
 
     // The live data object used to detect changes in content to update the RecyclerView
     val storyData : LiveData<List<Article>>
         get() = _data
 
-    // init function to launch the coroutines to not block main / UI thread
+    /**
+     * init function to launch the coroutines to not block main / UI thread
+     */
     fun init() {
         scope.launch {
-            getStories()
-            populateStoryList()
+            getStoryIDs(true)
+            loadArticles(true)
+            populateStoryList(recentStories)
+        }
+    }
+
+    fun updateView(recent : Boolean) {
+        val targetList : MutableList<Article>
+        if (recent) {
+            targetList = recentStories
+            activeStories = recentStories
+        } else {
+            targetList = bestStories
+            activeStories = bestStories
+        }
+
+        Log.d("ProcList", recentStories.toString())
+        Log.d("ProcList", bestStories.toString())
+
+        scope.launch {
+            loadArticles(recent)
+            populateStoryList(targetList)
         }
     }
 
     fun loadMore() {
         scope.launch {
-            loadArticles()
+//            loadArticles(recent)
         }
     }
 
     /**
      * Generates and executes HTTP requests to HackerNews API and populates information structures
-     *
+     * @param recent Boolean to determine whether to pull recent article data vs best article data
      */
-    private suspend fun getStories() {
 
-        val topStories = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
+    // TODO have best story IDs get retrieved
+    // TODO remove specific references
+    private suspend fun getStoryIDs(recent : Boolean) {
 
+        val newStoriesURL = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
 
-        val url = URL(topStories)
-        val connection : HttpURLConnection = url.openConnection() as HttpURLConnection
+        val bestStoriesURL = "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty"
 
-
-        // make the GET request here
-        connection.connect()
-
-        // receive response here & decipher into readable Array<String>
-
-        var parsedData : String = connection.inputStream.bufferedReader().use {it.readText()}
-            .trim('[').trim()
-        storyIDs = parsedData.split(", ").toMutableList()
-
-        // trim() or removeSurrounding() doesn't work for final val, have to truncate manually (?)
-        storyIDs[storyIDs.size - 1] = storyIDs[storyIDs.size - 1].take(
-            storyIDs[storyIDs.size - 1].length-2
-        )
-
-        Log.d("Tag", storyIDs[0])
-        Log.d("Tag", storyIDs[storyIDs.size - 1])
-        Log.d("MainActivity","We got there")
-        connection.disconnect()
-
-        loadArticles()
+        idRequest(newStoriesURL, true)
+        idRequest(bestStoriesURL, false)
 
     }
 
     /**
      * Loads 25 articles into active stories list
      */
-    private suspend fun loadArticles() {
+    // TODO remove specific references to recentstory info to input storyIDs
+    private suspend fun loadArticles(recent : Boolean) {
         val prefix = "https://hacker-news.firebaseio.com/v0/item/"
         val suffix = ".json?print=pretty"
+
+        var storyIDs : MutableList<String>
+        val articleList : MutableList<Article>
+
+        if (recent) {
+            storyIDs = recentStoryIDs
+            articleList = recentStories
+        } else {
+            storyIDs = bestStoryIDs
+            articleList = bestStories
+            Log.d("ProcCheck", "Loading Articles for Best Stories")
+        }
 
         var storyURL : URL
         var storyInfo : String
@@ -133,7 +156,7 @@ class MainViewModel : ViewModel() {
 
                 val newArticle = makeArticle(storyJSON)
 
-                stories.add(newArticle)
+                articleList.add(newArticle)
 
                 Log.d("Article", newArticle.toString())
 
@@ -143,15 +166,15 @@ class MainViewModel : ViewModel() {
                 Log.d("Exception", e.toString())
             }
 
-
-
         }
 
     }
 
-    private suspend fun populateStoryList() {
-        Log.d("Proc", stories.toString())
+    private suspend fun populateStoryList(stories : MutableList<Article>) {
+        Log.d("ProcFinalUpdate", stories.toString())
+        Log.d("BeforeMeteor", _data.toString())
         _data.postValue(stories)
+        Log.d("AfterMeteor", _data.toString())
 
     }
 
@@ -170,6 +193,46 @@ class MainViewModel : ViewModel() {
         val time = json.get("time").toString()
 
         return Article(title, rating, URL, time)
+    }
+
+    /**
+     * makes the initial HTTP request to receive either 500 best or recent story IDs
+     * @param url target URL for API call to receive best or recent story IDs
+     * @param recent whether or not we want best or recent story IDs
+     */
+    private suspend fun idRequest(url : String, recent : Boolean) {
+
+        var idList : MutableList<String>
+
+        val url = URL(url)
+
+        val connection : HttpURLConnection = url.openConnection() as HttpURLConnection
+
+
+        // make the GET request here
+        connection.connect()
+
+        // receive response here & decipher into readable Array<String>
+
+        var parsedData : String = connection.inputStream.bufferedReader().use {it.readText()}
+            .trim('[').trim()
+        idList = parsedData.split(", ").toMutableList()
+
+        // trim() or removeSurrounding() doesn't work for final val, have to truncate manually (?)
+        idList[idList.size - 1] = idList[idList.size - 1].take(
+            idList[idList.size - 1].length-2
+        )
+
+        Log.d("Tag", idList[0])
+        Log.d("Tag", idList[idList.size - 1])
+        if (recent) {
+            recentStoryIDs = idList
+        } else {
+            bestStoryIDs = idList
+        }
+        Log.d("MainActivity","We got there")
+        connection.disconnect()
+
     }
 
 

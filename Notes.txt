@@ -14,3 +14,7 @@ Reads up to 500 stories, only adds them to view if the returned json from API ha
 
 
 WHAT HAPPENS IF NO INTERNET AFTER FIRST FETCH? 
+
+What happens if button to swap lists is pressed during http fetch?  job quit, yeah?  
+
+clicking the same button rapidly causes crash 

@@ -2,12 +2,15 @@ package com.example.woven_news
 
 import android.content.Context
 import android.content.DialogInterface
+import android.media.Image
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageButton
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
@@ -58,7 +61,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.newsList)
 
         // attach the recyclerview to custom class PanelAdapter to manage data
-        adapter = PanelAdapter(this, viewModel.stories)
+        adapter = PanelAdapter(this, viewModel.activeStories)
         recyclerView.adapter = adapter
 
         // recyclerView does not have to worry about resizing due to content
@@ -71,7 +74,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.storyData.observe(
             this,
             Observer { examinedData ->
-                adapter.update(viewModel.stories)
+                adapter.update(viewModel.activeStories)
                 Log.d("ugh", viewModel.storyData.toString())
                 Log.d("ugh", viewModel.storyData.value.toString())
             },
@@ -82,6 +85,20 @@ class MainActivity : AppCompatActivity() {
 
         // begins HTTP requests to grab data from ViewModel class
         viewModel.init()
+
+        val recentButton = findViewById<ImageButton>(R.id.recentButton).setOnClickListener {
+            viewModel.updateView(true)
+            findViewById<TextView>(R.id.storyType).text = getString(R.string.recent)
+            Toast.makeText(this, "Switching to Recent Stories",
+                Toast.LENGTH_SHORT).show()
+        }
+
+        val bestButton = findViewById<ImageButton>(R.id.bestButton).setOnClickListener {
+            viewModel.updateView(false)
+            findViewById<TextView>(R.id.storyType).text = getString(R.string.best)
+            Toast.makeText(this, "Switching to Best Stories",
+                Toast.LENGTH_SHORT).show()
+        }
     }
 
     fun onArticleClick() {
