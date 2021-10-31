@@ -7,4 +7,6 @@
     <string name="URL">https://news.ycombinator.com/</string>
     <string name="number">%1$s.</string>
     <string name="time">0 hours ago</string>
+    <string name="recent">Recent Stories</string>
+    <string name="best">Best Stories</string>
 </resources>

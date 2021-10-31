@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
                 alert.show()
                 return
         }
-            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
+//            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
 
         // initialize our linearLayoutManager
         linearLayoutManager = LinearLayoutManager(this)
