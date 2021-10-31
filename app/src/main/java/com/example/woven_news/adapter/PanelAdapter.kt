@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woven_news.R
 import com.example.woven_news.model.Article
@@ -17,6 +18,7 @@ import java.net.URL
 
 class PanelAdapter(private val context : Context, private var content : List<Article>)
     : RecyclerView.Adapter<PanelAdapter.PanelViewHolder>() {
+
 
     class PanelViewHolder(context : Context, view : View) : RecyclerView.ViewHolder(view),
         View.OnClickListener {
@@ -33,7 +35,17 @@ class PanelAdapter(private val context : Context, private var content : List<Art
 
         override fun onClick(view : View?) {
             Log.d("RecyclerView", "GOTCHA")
+            try {
+                val targetURL = Intent(Intent.ACTION_VIEW)
+                targetURL.data = Uri.parse(webURL.contentDescription.toString())
+                Log.d("URI", targetURL.data.toString())
+                view!!.context.startActivity(targetURL)
 
+            } catch (e : Exception) {
+                Log.d("Exception", e.toString())
+                Toast.makeText(view!!.context, "Error Opening URL",
+                    Toast.LENGTH_SHORT).show()
+            }
 
         }
 
@@ -59,6 +71,8 @@ class PanelAdapter(private val context : Context, private var content : List<Art
         holder.storyNumber.text = (position + 1).toString() + "."
         holder.storyTitle.text = item.title
         holder.ratingScore.text = item.rating
+        // the URL content description is used to give the full URL to open a webpage
+        holder.webURL.contentDescription = item.URL
         try {
             holder.webURL.text = "(" + URL(item.URL).host + ")"
         } catch (e : Exception) { // if there is an error getting host, just have blank URL

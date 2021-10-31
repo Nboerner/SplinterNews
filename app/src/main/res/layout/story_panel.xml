@@ -66,6 +66,7 @@
         android:singleLine="true"
         android:ellipsize="marquee"
         android:text="@string/URL"
+        android:contentDescription="@string/URL"
         android:textColor="@color/dark_blue_gray"
         android:textSize="12sp"
         app:layout_constraintBottom_toBottomOf="parent"
