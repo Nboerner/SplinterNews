@@ -17,4 +17,7 @@ What happens if no internet during fetch?
 
 What happens if button to swap lists is pressed during http fetch?  job quit, yeah?  
 
-clicking the same button rapidly causes crash, but not if list is expended (!)
+Google Drive links do not work due to "Could not find any Google accounts, exiting application"
+Works on browser in incognito, though
+
+YouTube links work well and open in-app

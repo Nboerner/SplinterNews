@@ -1,8 +1,6 @@
 package com.example.woven_news
 
 import android.content.Context
-import android.content.DialogInterface
-import android.media.Image
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -13,7 +11,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woven_news.adapter.PanelAdapter
@@ -39,10 +36,10 @@ class MainActivity : AppCompatActivity() {
                 dialogBuilder.setMessage("No Internet Connection Detected.  " +
                             "Please connect to the network then restart the application.")
                     .setCancelable(false)
-                    .setNeutralButton("Okay",DialogInterface.OnClickListener {
-                            dialog, _ -> dialog.cancel()
-                    })
-                val alert = dialogBuilder.create()
+                    .setNeutralButton("Okay") { dialog, _ ->
+                        dialog.cancel()
+                    }
+            val alert = dialogBuilder.create()
                 alert.setTitle("No Internet Connection Detected")
                 alert.show()
                 return
@@ -73,10 +70,8 @@ class MainActivity : AppCompatActivity() {
         // waits for changes to occur in our liveData object from ViewModel to signal UI update
         viewModel.storyData.observe(
             this,
-            Observer { examinedData ->
+            {
                 adapter.update(viewModel.activeStories)
-                Log.d("ugh", viewModel.storyData.toString())
-                Log.d("ugh", viewModel.storyData.value.toString())
             },
         )
 
@@ -86,24 +81,26 @@ class MainActivity : AppCompatActivity() {
         // begins HTTP requests to grab data from ViewModel class
         viewModel.init()
 
-        val recentButton = findViewById<ImageButton>(R.id.recentButton).setOnClickListener {
+        findViewById<ImageButton>(R.id.recentButton).setOnClickListener {
+            if (viewModel.activeStories == viewModel.bestStories) {
+                Toast.makeText(this, "Switching to Recent Stories",
+                    Toast.LENGTH_SHORT).show()
+            }
             viewModel.updateView(true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.recent)
-            Toast.makeText(this, "Switching to Recent Stories",
-                Toast.LENGTH_SHORT).show()
         }
 
-        val bestButton = findViewById<ImageButton>(R.id.bestButton).setOnClickListener {
+        findViewById<ImageButton>(R.id.bestButton).setOnClickListener {
+            if (viewModel.activeStories == viewModel.recentStories) {
+                Toast.makeText(this, "Switching to Best Stories",
+                    Toast.LENGTH_SHORT).show()
+            }
             viewModel.updateView(false)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.best)
-            Toast.makeText(this, "Switching to Best Stories",
-                Toast.LENGTH_SHORT).show()
         }
-    }
-
-    fun onArticleClick() {
 
     }
+
 
     /**
      * Checks if the device is currently connected to an active internet connection

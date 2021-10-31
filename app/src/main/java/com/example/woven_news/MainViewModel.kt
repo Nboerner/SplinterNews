@@ -16,8 +16,6 @@ import java.net.URL
 
 class MainViewModel : ViewModel() {
 
-//    private var storyIds : List<String> by mutableStateOf(ListOf())
-
     private val _data = MutableLiveData<List<Article>>()
     // create a tangible job to interact with coroutine functions if necessary
     private val viewModelJob = Job()
@@ -25,17 +23,16 @@ class MainViewModel : ViewModel() {
     // the scope in which the coroutines will run to make HTTP requests
     private val scope = CoroutineScope(viewModelJob + Dispatchers.IO)
 
-    // list of ID's used to make HTTP requests to acquire recent article information
+    // list of ID's used to make HTTP requests to acquire specific article information
     private var recentStoryIDs = mutableListOf<String>()
-    // list of ID's used to make HTTP requests to acquire best article information
     private var bestStoryIDs = mutableListOf<String>()
 
 
-    // a list of the most recent articles to be shown on the main activity
+    // a list of the most recent or highest rated articles to be shown on the main activity
     var recentStories = mutableListOf<Article>()
-    // a list of the highest rated articles to be shown on the main activity
     var bestStories = mutableListOf<Article>()
 
+    //
     var activeStories : MutableList<Article> = recentStories
 
     // The live data object used to detect changes in content to update the RecyclerView
@@ -43,7 +40,7 @@ class MainViewModel : ViewModel() {
         get() = _data
 
     /**
-     * init function to launch the coroutines to not block main / UI thread
+     * Init function to launch the coroutines to grab initial data (25 most recent articles)
      */
     fun init() {
         scope.launch {
@@ -63,9 +60,6 @@ class MainViewModel : ViewModel() {
             activeStories = bestStories
         }
 
-        Log.d("ProcList", recentStories.toString())
-        Log.d("ProcList", bestStories.toString())
-
         scope.launch {
             loadArticles(recent)
             populateStoryList(targetList)
@@ -82,9 +76,6 @@ class MainViewModel : ViewModel() {
      * Generates and executes HTTP requests to HackerNews API and populates information structures
      * @param recent Boolean to determine whether to pull recent article data vs best article data
      */
-
-    // TODO have best story IDs get retrieved
-    // TODO remove specific references
     private suspend fun getStoryIDs(recent : Boolean) {
 
         val newStoriesURL = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
@@ -98,13 +89,13 @@ class MainViewModel : ViewModel() {
 
     /**
      * Loads 25 articles into active stories list
+     * @param recent Boolean value determining whether we are loading into recent or best stories
      */
-    // TODO remove specific references to recentstory info to input storyIDs
     private suspend fun loadArticles(recent : Boolean) {
         val prefix = "https://hacker-news.firebaseio.com/v0/item/"
         val suffix = ".json?print=pretty"
 
-        var storyIDs : MutableList<String>
+        val storyIDs : MutableList<String>
         val articleList : MutableList<Article>
 
         if (recent) {
@@ -138,7 +129,7 @@ class MainViewModel : ViewModel() {
 
             storyConnection.connect()
             storyInfo = storyConnection.inputStream.bufferedReader().use {it.readText()}
-            Log.d("Debug ugh", storyInfo)
+            Log.d("Data", storyInfo)
             var storyJSON = JSONObject()
             try {
                 storyJSON = JSONObject(storyInfo.substring(
@@ -170,8 +161,11 @@ class MainViewModel : ViewModel() {
 
     }
 
+    /**
+     * Updates the live data object with the passed in list of articles to notify adapter of update
+     * @param stories list of articles to be displayed on the MainActivity
+     */
     private suspend fun populateStoryList(stories : MutableList<Article>) {
-        Log.d("ProcFinalUpdate", stories.toString())
         Log.d("BeforeMeteor", _data.toString())
         _data.postValue(stories)
         Log.d("AfterMeteor", _data.toString())
