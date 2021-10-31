@@ -7,4 +7,10 @@ Built with Gradle (version?)
 
 Primarily Tested on API 24: Android 7.0 (Nougat)
 
-Reads up to 500 stories, only adds them to view if the returned type from API is of "story" 
+Emulated on Google Pixel 2 API 24
+
+Reads up to 500 stories, only adds them to view if the returned json from API has a valid URL  
+
+
+
+WHAT HAPPENS IF NO INTERNET AFTER FIRST FETCH? 

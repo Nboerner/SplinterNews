@@ -1,6 +1,7 @@
 package com.example.woven_news
 
 import android.content.Context
+import android.content.DialogInterface
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -8,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -25,6 +27,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(findViewById(R.id.toolbar))
+
+        // ensures the device is connected to the internet prior to HTTP requests
+        if (checkInternet()) Toast.makeText(this, "Connection is Clear",
+            Toast.LENGTH_SHORT).show() else {
+                // The Device is not connected and application does nothing
+                val dialogBuilder = AlertDialog.Builder(this)
+                dialogBuilder.setMessage("No Internet Connection Detected.  " +
+                            "Please connect to the network then restart the application.")
+                    .setCancelable(false)
+                    .setNeutralButton("Okay",DialogInterface.OnClickListener {
+                            dialog, _ -> dialog.cancel()
+                    })
+                val alert = dialogBuilder.create()
+                alert.setTitle("No Internet Connection Detected")
+                alert.show()
+                return
+        }
+            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
 
         // initialize our linearLayoutManager
         linearLayoutManager = LinearLayoutManager(this)
@@ -58,13 +78,14 @@ class MainActivity : AppCompatActivity() {
         )
 
 
-        // ensures the device is connected to the internet prior to HTTP requests
-        if (checkInternet()) Toast.makeText(this, "Connection is Clear",
-            Toast.LENGTH_SHORT).show() else
-                Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
+
 
         // begins HTTP requests to grab data from ViewModel class
         viewModel.init()
+    }
+
+    fun onArticleClick() {
+
     }
 
     /**

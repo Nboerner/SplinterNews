@@ -108,8 +108,8 @@ class MainViewModel : ViewModel() {
                 return
             }
 
-            storyURL = URL(prefix + storyIDs[i] + suffix)
-            storyIDs.removeAt(i)
+            storyURL = URL(prefix + storyIDs[0] + suffix)
+            storyIDs.removeFirst()
             Log.d("URL", storyURL.toString())
             storyConnection = storyURL.openConnection() as HttpURLConnection
 

@@ -12,6 +12,6 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-<!--        <item name="android:actionBarDivider" tools:targetApi="l">?attr/colorSecondary</item>-->
+        <item name="android:textSize">14sp</item>
     </style>
 </resources>

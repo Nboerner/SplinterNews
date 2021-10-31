@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/base"
     android:padding="8dp"
     android:layout_margin="8dp"
     android:background="@color/lemon_meringue"
@@ -21,11 +22,15 @@
 
     <TextView
         android:id="@+id/headline"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="marquee"
+        android:singleLine="true"
         android:text="@string/headline"
         android:textColor="@color/black"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/number"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -33,6 +38,8 @@
         android:id="@+id/rating"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:singleLine="true"
+        android:ellipsize="marquee"
         android:text="@string/rating"
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -43,6 +50,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
         android:text="@string/score"
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -50,18 +59,26 @@
 
     <TextView
         android:id="@+id/url"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
         android:text="@string/URL"
-        android:textColor="@color/black"
+        android:textColor="@color/dark_blue_gray"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/timestamp" />
 
     <TextView
         android:id="@+id/timestamp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
         android:text="@string/time"
         android:textColor="@color/black"
         app:layout_constraintBottom_toBottomOf="parent"
