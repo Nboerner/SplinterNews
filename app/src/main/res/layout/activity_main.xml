@@ -56,10 +56,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
+        android:contentDescription="@string/recent"
         android:minHeight="48dp"
         app:layout_constraintEnd_toStartOf="@+id/bestButton"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
-        app:srcCompat="@drawable/recent" />
+        app:srcCompat="@drawable/recent"
+        tools:ignore="DuplicateSpeakableTextCheck" />
 
     <ImageButton
         android:id="@+id/bestButton"
@@ -68,6 +70,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:minHeight="48dp"
+        android:contentDescription="@string/best"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar"
         app:srcCompat="@drawable/best" />
