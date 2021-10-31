@@ -44,13 +44,14 @@ class MainViewModel : ViewModel() {
      */
     fun init() {
         scope.launch {
-            getStoryIDs(true)
-            loadArticles(true)
+            getStoryIDs()
+            loadArticles(true) // load initial 25 most recent stories
+            loadArticles(false) // load initial 25 best stories
             populateStoryList(recentStories)
         }
     }
 
-    fun updateView(recent : Boolean) {
+    fun updateView(recent : Boolean, buttonPress : Boolean) {
         val targetList : MutableList<Article>
         if (recent) {
             targetList = recentStories
@@ -61,7 +62,9 @@ class MainViewModel : ViewModel() {
         }
 
         scope.launch {
-            loadArticles(recent)
+            if(!buttonPress) {
+                loadArticles(recent)
+            }
             populateStoryList(targetList)
         }
     }
@@ -76,7 +79,7 @@ class MainViewModel : ViewModel() {
      * Generates and executes HTTP requests to HackerNews API and populates information structures
      * @param recent Boolean to determine whether to pull recent article data vs best article data
      */
-    private suspend fun getStoryIDs(recent : Boolean) {
+    private suspend fun getStoryIDs() {
 
         val newStoriesURL = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
 

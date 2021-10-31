@@ -32,8 +32,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(findViewById(R.id.toolbar))
 
         // ensures the device is connected to the internet prior to HTTP requests
-        if (checkInternet()) Toast.makeText(this, "Connection is Clear",
-            Toast.LENGTH_SHORT).show() else {
+        if (checkInternet()) {
+            Log.d("Network", "Internet connection is good")
+        } else {
                 // The Device is not connected and application does nothing
                 val dialogBuilder = AlertDialog.Builder(this)
                 dialogBuilder.setMessage("No Internet Connection Detected.  " +
@@ -82,7 +83,8 @@ class MainActivity : AppCompatActivity() {
 
 
 
-
+        Toast.makeText(this, "Loading News Articles from Hacker News...",
+            Toast.LENGTH_LONG).show()
         // begins HTTP requests to grab data from ViewModel class
         viewModel.init()
 
@@ -91,7 +93,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Switching to Recent Stories",
                     Toast.LENGTH_SHORT).show()
             }
-            viewModel.updateView(true)
+            viewModel.updateView(true, true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.recent)
         }
 
@@ -100,7 +102,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Switching to Best Stories",
                     Toast.LENGTH_SHORT).show()
             }
-            viewModel.updateView(false)
+            viewModel.updateView(false, true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.best)
         }
 
@@ -118,10 +120,10 @@ class MainActivity : AppCompatActivity() {
                     Log.d("RecyclerView", "Loading new Content on scroll")
                     if (viewModel.activeStories == viewModel.recentStories) {
                         Log.d("RecyclerView", "Loading new recent articles")
-                        viewModel.updateView(true)
+                        viewModel.updateView(true, false)
                     } else {
                         Log.d("RecyclerView", "Loading new best articles")
-                        viewModel.updateView(false)
+                        viewModel.updateView(false, false)
                     }
                     recyclerView.removeOnScrollListener(scrollListener)
                     setRecyclerScrollListener(recyclerView, viewModel)
