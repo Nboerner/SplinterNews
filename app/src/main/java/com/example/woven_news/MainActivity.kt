@@ -11,7 +11,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.ViewModel
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.woven_news.adapter.PanelAdapter
@@ -48,12 +47,9 @@ class MainActivity : AppCompatActivity() {
                 alert.show()
                 return
         }
-//            Toast.makeText(this, "No Internet Connection", Toast.LENGTH_LONG).show()
 
         // initialize our linearLayoutManager
         linearLayoutManager = LinearLayoutManager(this)
-
-        // TODO make on scroll listener for dynamic loading
 
         // initialize a viewModel class for the page
         val viewModel = MainViewModel()
@@ -62,7 +58,7 @@ class MainActivity : AppCompatActivity() {
         val recyclerView = findViewById<RecyclerView>(R.id.newsList)
 
         // attach the recyclerview to custom class PanelAdapter to manage data
-        adapter = PanelAdapter(this, viewModel.activeStories)
+        adapter = PanelAdapter(viewModel.activeStories)
         recyclerView.adapter = adapter
 
         // recyclerView does not have to worry about resizing due to content
@@ -89,20 +85,20 @@ class MainActivity : AppCompatActivity() {
         viewModel.init()
 
         findViewById<ImageButton>(R.id.recentButton).setOnClickListener {
-            if (viewModel.activeStories == viewModel.bestStories) {
+            if (viewModel.activeStories == viewModel.bestArticles) {
                 Toast.makeText(this, "Switching to Recent Stories",
                     Toast.LENGTH_SHORT).show()
             }
-            viewModel.updateView(true, true)
+            viewModel.updateView(recent = true, buttonPress = true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.recent)
         }
 
         findViewById<ImageButton>(R.id.bestButton).setOnClickListener {
-            if (viewModel.activeStories == viewModel.recentStories) {
+            if (viewModel.activeStories == viewModel.recentArticles) {
                 Toast.makeText(this, "Switching to Best Stories",
                     Toast.LENGTH_SHORT).show()
             }
-            viewModel.updateView(false, true)
+            viewModel.updateView(recent = false, buttonPress = true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.best)
         }
 
@@ -118,12 +114,12 @@ class MainActivity : AppCompatActivity() {
                 val totalArticles = recyclerView.layoutManager!!.itemCount
                 if (totalArticles == linearLayoutManager.findLastVisibleItemPosition() + 1) {
                     Log.d("RecyclerView", "Loading new Content on scroll")
-                    if (viewModel.activeStories == viewModel.recentStories) {
+                    if (viewModel.activeStories == viewModel.recentArticles) {
                         Log.d("RecyclerView", "Loading new recent articles")
-                        viewModel.updateView(true, false)
+                        viewModel.updateView(recent = true, buttonPress = false)
                     } else {
                         Log.d("RecyclerView", "Loading new best articles")
-                        viewModel.updateView(false, false)
+                        viewModel.updateView(recent = false, buttonPress = false)
                     }
                     recyclerView.removeOnScrollListener(scrollListener)
                     setRecyclerScrollListener(recyclerView, viewModel)
@@ -131,7 +127,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         recycler.addOnScrollListener(scrollListener)
-        Log.d("RecyclerView", "Setting new listener")
+//        Log.d("RecyclerView", "Setting new listener")
 
     }
 

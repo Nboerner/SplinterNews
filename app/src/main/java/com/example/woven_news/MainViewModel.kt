@@ -5,18 +5,24 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.woven_news.model.Article
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.lang.Exception
 import java.net.HttpURLConnection
 import java.net.URL
 
+/**
+ * ViewModel class for the Main Activity. Handles interactions between Main Activity view, HTTP
+ * requests, and Model class data.  Responsible for completing HTTP requests in coroutines to not
+ * block the main UI thread for the Main Activity and notifying the view when it needs to be
+ * updated.
+ */
+@Suppress("BlockingMethodInNonBlockingContext")
 class MainViewModel : ViewModel() {
 
+    // Mutable Live Data that is used to monitor currently viewed Articles
     private val _data = MutableLiveData<List<Article>>()
+
     // create a tangible job to interact with coroutine functions if necessary
     private val viewModelJob = Job()
 
@@ -28,37 +34,47 @@ class MainViewModel : ViewModel() {
     private var bestStoryIDs = mutableListOf<String>()
 
 
-    // a list of the most recent or highest rated articles to be shown on the main activity
-    var recentStories = mutableListOf<Article>()
-    var bestStories = mutableListOf<Article>()
+    // lists of the most recent and highest rated articles to be shown on the main activity
+    var recentArticles = mutableListOf<Article>()
+    var bestArticles = mutableListOf<Article>()
 
-    //
-    var activeStories : MutableList<Article> = recentStories
+    // object that represents what the current active story category is that the user is viewing
+    var activeStories : MutableList<Article> = recentArticles
 
-    // The live data object used to detect changes in content to update the RecyclerView
+    // The public live data object used to signal changes in content to update the RecyclerView
     val storyData : LiveData<List<Article>>
         get() = _data
 
     /**
      * Init function to launch the coroutines to grab initial data (25 most recent articles)
+     * and populates the recycler view with the recent stories by default
      */
     fun init() {
         scope.launch {
             getStoryIDs()
             loadArticles(true) // load initial 25 most recent stories
             loadArticles(false) // load initial 25 best stories
-            populateStoryList(recentStories)
+            populateStoryList(recentArticles)
         }
     }
 
+    /**
+     * Changes the active Article list to be shown to the user.  If this call was made by scrolling
+     * instead of a button press, it loads the next 25 Articles in the current active Article list
+     * @param recent boolean value that determines if the current active Article list is "recent"
+     * @param buttonPress boolean value that determines if the method was called by a button press
+     */
     fun updateView(recent : Boolean, buttonPress : Boolean) {
+
+        // the list of best/recent articles to be passed into populateStoryList() to update UI
         val targetList : MutableList<Article>
+
         if (recent) {
-            targetList = recentStories
-            activeStories = recentStories
+            targetList = recentArticles
+            activeStories = recentArticles
         } else {
-            targetList = bestStories
-            activeStories = bestStories
+            targetList = bestArticles
+            activeStories = bestArticles
         }
 
         scope.launch {
@@ -69,23 +85,18 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun loadMore() {
-        scope.launch {
-//            loadArticles(recent)
-        }
-    }
-
     /**
      * Generates and executes HTTP requests to HackerNews API and populates information structures
-     * @param recent Boolean to determine whether to pull recent article data vs best article data
      */
     private suspend fun getStoryIDs() {
+        // strings representing URLS according to the public API
+        val recentStoriesURL =
+            "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
+        val bestStoriesURL =
+            "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty"
 
-        val newStoriesURL = "https://hacker-news.firebaseio.com/v0/newstories.json?print=pretty"
-
-        val bestStoriesURL = "https://hacker-news.firebaseio.com/v0/topstories.json?print=pretty"
-
-        idRequest(newStoriesURL, true)
+        // populate the lists of IDs for both recent stories and best stories via HTTP request
+        idRequest(recentStoriesURL, true)
         idRequest(bestStoriesURL, false)
 
     }
@@ -95,101 +106,119 @@ class MainViewModel : ViewModel() {
      * @param recent Boolean value determining whether we are loading into recent or best stories
      */
     private suspend fun loadArticles(recent : Boolean) {
+        // API URL components
         val prefix = "https://hacker-news.firebaseio.com/v0/item/"
         val suffix = ".json?print=pretty"
 
+        // Lists of Articles and IDs used to load more Articles from HTTP request
         val storyIDs : MutableList<String>
         val articleList : MutableList<Article>
 
-        if (recent) {
+        if (recent) { // Loading Recent Articles
             storyIDs = recentStoryIDs
-            articleList = recentStories
-        } else {
+            articleList = recentArticles
+            Log.d("ProcCheck", "Loading Articles for Recent Stories")
+        } else { // Loading Best Articles
             storyIDs = bestStoryIDs
-            articleList = bestStories
+            articleList = bestArticles
             Log.d("ProcCheck", "Loading Articles for Best Stories")
         }
 
-        var storyURL : URL
-        var storyInfo : String
-        var storyConnection : HttpURLConnection
+        var storyURL : URL // URL to be constructed from prefix + ID + suffix
+        var storyInfo : String // String representing the inputStream from HTTP request
+        var storyConnection : HttpURLConnection // The HTTP connection object
 
-        // load 25 articles
-        var i = 0
-        while (i < 25) {
+        withContext(Dispatchers.IO) {
+            // load 25 articles
+            var i = 0
+            while (i < 25) {
 
 
-            // base case
-            if (storyIDs.isEmpty()) {
-                Log.d("Debug", "No More Stories to Load")
-                return
-            }
+                // base case
+                if (storyIDs.isEmpty()) {
+                    Log.d("Debug", "No More Stories to Load")
+                    return@withContext
+                }
 
-            storyURL = URL(prefix + storyIDs[0] + suffix)
-            storyIDs.removeFirst()
-            Log.d("URL", storyURL.toString())
-            storyConnection = storyURL.openConnection() as HttpURLConnection
+                storyURL = URL(prefix + storyIDs[0] + suffix)
 
-            storyConnection.connect()
-            storyInfo = storyConnection.inputStream.bufferedReader().use {it.readText()}
-            Log.d("Data", storyInfo)
-            var storyJSON = JSONObject()
-            try {
-                storyJSON = JSONObject(storyInfo.substring(
-                    storyInfo.indexOf("{"), storyInfo.lastIndexOf("}") + 1
-                ))
-            } catch (e : Exception) {
-                Log.d("Exception", e.toString())
-                continue
-            }
+                // remove loaded Article ID from list
+                storyIDs.removeFirst()
+//                Log.d("URL", storyURL.toString())
+                storyConnection = storyURL.openConnection() as HttpURLConnection
 
-            storyConnection.disconnect()
+                storyConnection.connect()
+                storyInfo = storyConnection.inputStream.bufferedReader().use {it.readText()}
+//                Log.d("Data", storyInfo)
+                // JSONObject holding the raw information of the article
+                var storyJSON : JSONObject
 
-            try {
-                storyJSON.get("url").toString()
+                // try to parse the JSON object
+                try {
+                    // parse JSON object
+                    storyJSON = JSONObject(storyInfo.substring(
+                        storyInfo.indexOf("{"), storyInfo.lastIndexOf("}") + 1
+                    ))
+                } catch (e : Exception) {
+                    // error parsing JSON
+                    Log.d("Exception", e.toString())
+                    continue
+                }
 
-                val newArticle = makeArticle(storyJSON)
+                storyConnection.disconnect()
 
-                articleList.add(newArticle)
+                // try to populate Article details with parsed JSON info
+                try {
+                    storyJSON.get("url").toString()
 
-                Log.d("Article", newArticle.toString())
+                    // get a new Article object by passing parsed JSON object into makeArticle()
+                    val newArticle = makeArticle(storyJSON)
 
-                i++
+                    // add the returned Article to the current Article list
+                    articleList.add(newArticle)
 
-            } catch (e : Exception) {
-                Log.d("Exception", e.toString())
+//                    Log.d("Article", newArticle.toString())
+
+                    // i is only incremented if an article is successfully loaded
+                    i++
+
+                } catch (e : Exception) {
+                    Log.d("Exception", e.toString())
+                }
+
             }
 
         }
+
+
 
     }
 
     /**
-     * Updates the live data object with the passed in list of articles to notify adapter of update
+     * Updates the live data object in a thread-safe way with the passed in list of articles to
+     * notify adapter of update
      * @param stories list of articles to be displayed on the MainActivity
      */
     private suspend fun populateStoryList(stories : MutableList<Article>) {
-        Log.d("BeforeMeteor", _data.toString())
-        _data.postValue(stories)
-        Log.d("AfterMeteor", _data.toString())
-
+        withContext(Dispatchers.Default) {
+            _data.postValue(stories)
+        }
     }
 
 
     /**
      * Parses through JSON data of items returned from API to turn into Article model objects
-     *
-     * @param data passed in json data
+     * @param json passed in json object to populate Article Model information
      * @return Article returned article generated from json data
      */
-    private suspend fun makeArticle (json : JSONObject) : Article {
-        Log.d("debug", json.toString())
+    private fun makeArticle (json : JSONObject) : Article {
+//        Log.d("JSON", json.toString())
         val title = json.get("title").toString()
         val rating = json.get("score").toString()
-        val URL = json.get("url").toString()
+        val url = json.get("url").toString()
         val time = json.get("time").toString()
 
-        return Article(title, rating, URL, time)
+        return Article(title, rating, url, time)
     }
 
     /**
@@ -199,36 +228,48 @@ class MainViewModel : ViewModel() {
      */
     private suspend fun idRequest(url : String, recent : Boolean) {
 
-        var idList : MutableList<String>
+        withContext(Dispatchers.IO) {
 
-        val url = URL(url)
+            val idList : MutableList<String>
 
-        val connection : HttpURLConnection = url.openConnection() as HttpURLConnection
+            val targetURL = URL(url)
+
+            val connection : HttpURLConnection = targetURL.openConnection() as HttpURLConnection
 
 
-        // make the GET request here
-        connection.connect()
+            // make the GET request here
+            try{
+                connection.connect()
+            } catch (e : Exception) { // should never be an error here as long as API is consistent
+                Log.d("Exception", e.toString())
+                return@withContext
+            }
 
-        // receive response here & decipher into readable Array<String>
+            // receive response here & decipher into readable Array<String>
+            val parsedData : String = connection.inputStream.bufferedReader().use {it.readText()}
+                .trim('[').trim()
+            idList = parsedData.split(", ").toMutableList()
 
-        var parsedData : String = connection.inputStream.bufferedReader().use {it.readText()}
-            .trim('[').trim()
-        idList = parsedData.split(", ").toMutableList()
+            /* trim() or removeSurrounding() doesn't work for final val, have to */
+            /* truncate manually (?) */
+            idList[idList.size - 1] = idList[idList.size - 1].take(
+                idList[idList.size - 1].length-2
+            )
 
-        // trim() or removeSurrounding() doesn't work for final val, have to truncate manually (?)
-        idList[idList.size - 1] = idList[idList.size - 1].take(
-            idList[idList.size - 1].length-2
-        )
+            // uncomment to see first and last ID in logcat
+//            Log.d("IDs", idList[0]) // debug -> first ID in the list
+//            Log.d("IDs", idList[idList.size - 1]) // debug -> last ID in the list
+            if (recent) {
+                recentStoryIDs = idList
+            } else {
+                bestStoryIDs = idList
+            }
+            Log.d("MainActivity","ID HTTP requests successful")
+            connection.disconnect()
 
-        Log.d("Tag", idList[0])
-        Log.d("Tag", idList[idList.size - 1])
-        if (recent) {
-            recentStoryIDs = idList
-        } else {
-            bestStoryIDs = idList
         }
-        Log.d("MainActivity","We got there")
-        connection.disconnect()
+
+
 
     }
 
