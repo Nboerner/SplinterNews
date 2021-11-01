@@ -3,8 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/base"
     android:padding="8dp"
+    android:background="@drawable/panel_design"
+    android:elevation="5dp"
     android:layout_margin="8dp"
-    android:background="@color/lemon_meringue"
     android:layout_width="match_parent"
     android:layout_height="64dp">
 
