@@ -20,9 +20,10 @@ class MainActivity : AppCompatActivity() {
     // A basic linear layout manager used to present the articles in an ordered fashion
     private lateinit var linearLayoutManager : LinearLayoutManager
 
-    // adapter used by the RecyclerView to handle population of articles from HTTP request
+    // Adapter used by the RecyclerView to handle population of articles from HTTP request
     private lateinit var adapter : PanelAdapter
 
+    // Listener used to detect when the bottom of a list has been reached by the user
     private lateinit var scrollListener : RecyclerView.OnScrollListener
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         if (checkInternet()) {
             Log.d("Network", "Internet connection is good")
         } else {
-                // The Device is not connected and application does nothing
+                // The Device is not connected and application does nothing beyond this statement
                 val dialogBuilder = AlertDialog.Builder(this)
                 dialogBuilder.setMessage("No Internet Connection Detected.  " +
                             "Please connect to the network then restart the application.")
@@ -48,16 +49,14 @@ class MainActivity : AppCompatActivity() {
                 return
         }
 
-        // initialize our linearLayoutManager
-        linearLayoutManager = LinearLayoutManager(this)
-
         // initialize a viewModel class for the page
         val viewModel = MainViewModel()
 
-        // create a recyclerview to prepare to present data
-        val recyclerView = findViewById<RecyclerView>(R.id.newsList)
+        // initialize linearLayoutManager
+        linearLayoutManager = LinearLayoutManager(this)
 
-        // attach the recyclerview to custom class PanelAdapter to manage data
+        // create a recyclerview to prepare to present data & attach to adapter to manage data
+        val recyclerView = findViewById<RecyclerView>(R.id.newsList)
         adapter = PanelAdapter(viewModel.activeStories)
         recyclerView.adapter = adapter
 
@@ -74,30 +73,35 @@ class MainActivity : AppCompatActivity() {
                 adapter.update(viewModel.activeStories)
             },
         )
-
+        // sets the listener to detect scrolling to the end of the recyclerView
         setRecyclerScrollListener(recyclerView, viewModel)
 
 
 
         Toast.makeText(this, "Loading News Articles from Hacker News...",
             Toast.LENGTH_LONG).show()
+
         // begins HTTP requests to grab data from ViewModel class
         viewModel.init()
 
+        // set functionality for the "Recent" button on UI
         findViewById<ImageButton>(R.id.recentButton).setOnClickListener {
             if (viewModel.activeStories == viewModel.bestArticles) {
                 Toast.makeText(this, "Switching to Recent Stories",
                     Toast.LENGTH_SHORT).show()
             }
+            // requests view to show Recent Articles, but should not load new Articles on press
             viewModel.updateView(recent = true, buttonPress = true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.recent)
         }
 
+        // set functionality for the "Best" button on UI
         findViewById<ImageButton>(R.id.bestButton).setOnClickListener {
             if (viewModel.activeStories == viewModel.recentArticles) {
                 Toast.makeText(this, "Switching to Best Stories",
                     Toast.LENGTH_SHORT).show()
             }
+            // requests view to show Best Articles, but should not load new Articles on press
             viewModel.updateView(recent = false, buttonPress = true)
             findViewById<TextView>(R.id.storyType).text = getString(R.string.best)
         }
@@ -105,14 +109,22 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
+    /**
+     * Creates a custom onScrollListener for the passed in RecyclerView object to load new Articles
+     * once the RecyclerView has been scrolled to the bottom
+     * @param recycler the RecyclerView to attach the listener to
+     * @param viewModel the ViewModel responsible for updating the RecyclerView
+     */
     private fun setRecyclerScrollListener(recycler : RecyclerView, viewModel : MainViewModel) {
 
         scrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
+
+                // number of articles currently loaded into the view
                 val totalArticles = recyclerView.layoutManager!!.itemCount
                 if (totalArticles == linearLayoutManager.findLastVisibleItemPosition() + 1) {
+                    // user has scrolled to the bottom of the view
                     Log.d("RecyclerView", "Loading new Content on scroll")
                     if (viewModel.activeStories == viewModel.recentArticles) {
                         Log.d("RecyclerView", "Loading new recent articles")
@@ -121,11 +133,14 @@ class MainActivity : AppCompatActivity() {
                         Log.d("RecyclerView", "Loading new best articles")
                         viewModel.updateView(recent = false, buttonPress = false)
                     }
+                    // temporarily removing listener prevents unnecessary calls during load
                     recyclerView.removeOnScrollListener(scrollListener)
+                    // set up listener again
                     setRecyclerScrollListener(recyclerView, viewModel)
                 }
             }
         }
+        // assign listener to RecyclerView again
         recycler.addOnScrollListener(scrollListener)
 //        Log.d("RecyclerView", "Setting new listener")
 
