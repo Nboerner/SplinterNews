@@ -1,5 +1,5 @@
 # WovenNews
-Simple Newsfeed Android application that retrieves articles from HackerNews (https://news.ycombinator.com/)  and allows users to sort and open these articles in their browser. Loads up to 500 of the most recent stories or best stories provided from the public API.  Users can switch between viewing most recent or highest rated articles using 2 buttons near the top of the screen.  
+Simple Newsfeed Android application that retrieves articles from HackerNews (https://news.ycombinator.com/)  and allows users to sort and open these articles in their browser. Loads up to 500 of the most recent stories or best stories provided from the public API asynchronously.  Users can switch between viewing most recent or highest rated articles using 2 buttons near the top of the screen.  
 
 # Project Setup
 Load the project into Android Studio and build using Gradle (https://gradle.org/).
