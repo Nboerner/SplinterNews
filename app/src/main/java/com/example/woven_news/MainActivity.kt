@@ -26,6 +26,9 @@ class MainActivity : AppCompatActivity() {
     // Listener used to detect when the bottom of a list has been reached by the user
     private lateinit var scrollListener : RecyclerView.OnScrollListener
 
+    // Flag to indicate onScrollListener to stop sending toast messages
+    private var internetFlag : Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -34,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         // ensures the device is connected to the internet prior to HTTP requests
         if (checkInternet()) {
             Log.d("Network", "Internet connection is good")
+            internetFlag = true
         } else {
                 // The Device is not connected and application does nothing beyond this statement
                 val dialogBuilder = AlertDialog.Builder(this)
@@ -121,6 +125,19 @@ class MainActivity : AppCompatActivity() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
 
+                // check if active internet connection exists
+                if (!checkInternet()) {
+                    if(internetFlag) // notify user
+                    Toast.makeText(applicationContext, "No Internet Connection Detected, " +
+                            "Cannot Fetch New Articles",
+                        Toast.LENGTH_LONG).show()
+                    internetFlag = false // set to no internet
+                    return
+
+                }
+
+                internetFlag = true
+
                 // number of articles currently loaded into the view
                 val totalArticles = recyclerView.layoutManager!!.itemCount
                 if (totalArticles == linearLayoutManager.findLastVisibleItemPosition() + 1) {
@@ -138,6 +155,8 @@ class MainActivity : AppCompatActivity() {
                     // set up listener again
                     setRecyclerScrollListener(recyclerView, viewModel)
                 }
+
+
             }
         }
         // assign listener to RecyclerView again
