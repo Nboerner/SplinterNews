@@ -5,4 +5,4 @@ Simple Newsfeed Android application that retrieves articles from HackerNews (htt
 Load the project into Android Studio and build using Gradle (https://gradle.org/).
 
 # Build Information
-This project was built with Gradle 7.0.2 & Android Gradle Plugin Version 7.0.3.  The minimum SDK is 21, while the target SDK is 30.  The minimum API is Android 5.0 (Lollipop).  It was primarily tested on API 24: Android 7.0 (Nougat) on an emulated Google Pixel 2 through Android Studio.  
+This project was built with Gradle 7.0.2 & Android Gradle Plugin Version 7.0.3.  The minimum SDK is 21, while the target SDK is 30.  The minimum API is API 21: Android 5.0 (Lollipop).  It was primarily tested on API 24: Android 7.0 (Nougat) on an emulated Google Pixel 2 through Android Studio.  
