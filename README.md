@@ -6,3 +6,5 @@ Load the project into Android Studio and build using Gradle (https://gradle.org/
 
 # Build Information
 This project was built with Gradle 7.0.2 & Android Gradle Plugin Version 7.0.3.  The minimum SDK is 21, while the target SDK is 30.  The minimum API is API 21: Android 5.0 (Lollipop).  It was primarily tested on API 24: Android 7.0 (Nougat) on an emulated Google Pixel 2 through Android Studio.  
+
+If the Gradle Build is failing within Android Studio, try changing the JDK to a lower version number (i.e. 11.0).  
