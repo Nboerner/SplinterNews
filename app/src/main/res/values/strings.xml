@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Woven_News</string>
-    <string name="title">Woven News</string>
+    <string name="app_name">Splinter_News</string>
+    <string name="title">Splinter News</string>
     <string name="headline">Article Name</string>
     <string name="rating">Rating:</string>
     <string name="score">000</string>
